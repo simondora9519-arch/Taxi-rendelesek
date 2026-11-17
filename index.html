@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Céges Rendelések</title>
+<style>
+:root{--y:#f5b800;--yd:#d99f00;--dk:#2b2f36;--bg:#f4f5f7;--bd:#e1e3e8;--mu:#6b7280;--mod:#9aa1ab}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:#222}
+button{font:inherit;cursor:pointer}input,select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;width:100%;background:#fff;color:inherit}
+.btn{background:var(--y);border:0;border-radius:8px;padding:9px 15px;font-weight:600;color:#222}.btn:hover{background:var(--yd)}
+.btn.sec{background:#fff;border:1px solid var(--bd)}.btn.sm{padding:5px 9px;font-size:13px}.btn.red{background:#e5484d;color:#fff}
+.hidden{display:none!important}.sp{flex:1}
+/* login */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#fff;border-radius:14px;box-shadow:0 4px 20px #0001;padding:26px;width:100%;max-width:380px}
+.card h1{margin:0 0 4px;font-size:21px}.card p{color:var(--mu);margin:0 0 18px}
+.field{margin-bottom:12px}.field label{display:block;font-size:13px;margin-bottom:4px;font-weight:600}
+.chk{display:flex;gap:8px;align-items:center;font-size:14px;margin-bottom:14px}.chk input{width:auto}
+.err{color:#c62828;font-size:14px;min-height:18px;margin-bottom:6px}
+.ok{color:#1b7f3b;font-size:14px}
+/* layout */
+header{height:56px;background:var(--dk);color:#fff;display:flex;align-items:center;padding:0 14px;gap:10px;position:sticky;top:0;z-index:20;border-bottom:4px solid var(--y)}
+header .logo{font-weight:700}header .logo span{color:var(--y)}
+header .navb{background:none;border:0;color:#fff;font-size:15px;padding:6px 8px;border-radius:6px}header .navb:hover{background:#ffffff22}
+#menuBtn{display:none;background:none;border:0;color:#fff;font-size:22px}
+#app{display:flex;min-height:calc(100vh - 56px)}
+nav{width:250px;background:#fff;border-right:1px solid var(--bd);overflow-y:auto;height:calc(100vh - 56px);position:sticky;top:56px;flex-shrink:0;display:flex;flex-direction:column}
+#tree{flex:1;padding:6px}
+.yr>button,.mo>button{width:100%;text-align:left;background:none;border:0;padding:8px 9px;border-radius:8px;display:flex;align-items:center;gap:5px}
+.yr>button{font-weight:700}.mo>button{padding-left:20px}
+.yr>button:hover,.mo>button:hover{background:var(--bg)}
+.arr{display:inline-block;width:12px;transition:transform .15s;color:var(--mu)}.open>button .arr{transform:rotate(90deg)}
+.kids{display:none}.open>.kids{display:block}
+a.day{display:flex;justify-content:space-between;padding:5px 9px 5px 40px;color:#222;text-decoration:none;font-size:13px;border-radius:6px}
+a.day:hover{background:var(--bg)}a.day.act{background:var(--y);font-weight:700}
+a.day.we{color:#b45309}a.day .n{background:var(--dk);color:#fff;border-radius:9px;font-size:11px;padding:0 6px}
+.navfoot{padding:9px;border-top:1px solid var(--bd);display:grid;gap:7px}
+main{flex:1;padding:18px;min-width:0}
+h2{margin:0 0 3px;font-size:21px}.sub{color:var(--mu);margin:0 0 14px;font-size:14px}
+.bar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+/* compact sorok */
+.rows{display:grid;gap:6px}
+.row{background:#fff;border-radius:9px;box-shadow:0 1px 3px #0001;display:grid;grid-template-columns:64px 78px 110px minmax(150px,1fr) minmax(150px,1.1fr) auto;gap:10px;align-items:center;padding:7px 10px;font-size:14px;border-left:4px solid transparent}
+.row.note{grid-template-columns:64px 1fr auto;background:#fffdf3;border-left-color:var(--bd);font-style:italic}
+.row .tm{font-weight:700;font-size:16px}.row .tm .ann{font-size:12px;display:block;color:var(--mu);font-weight:400}
+.tx{text-align:center;font-size:13px;color:#333;cursor:pointer;user-select:none}
+.tx b{display:block;font-weight:400;font-size:15px}.tx.b b{font-weight:800}
+.pay{display:inline-block;padding:2px 7px;border-radius:9px;font-size:12px;font-weight:600;white-space:nowrap;background:#eee}
+.pay.Készpénz{background:#dcfce7}.pay.Bankkártya{background:#dbeafe}.pay.Utalás{background:#fef3c7}
+.pay.Amex{background:#e0e7ff}.pay.Menetlevél{background:#f5d0fe}.pay.WBS{background:#ccfbf1}
+.rt{line-height:1.35}.rt .st{display:block;color:#444;font-size:13px}.rt .tg{color:var(--mu)}
+.nm b{font-weight:800;display:block;font-size:14px}.nm span{font-size:12px;color:var(--mu);display:block}
+.f.mod,.m{color:var(--mod)!important}
+.ck{display:flex;gap:6px;align-items:center;white-space:nowrap;flex-wrap:wrap;justify-content:flex-end}
+.ck label{font-size:12px;display:flex;gap:4px;align-items:center}.ck input{width:auto}
+.bell{background:none;border:0;font-size:15px;padding:2px 4px}.bell.on{filter:none}.bell.off{opacity:.3}
+.empty{background:#fff;padding:34px;text-align:center;color:var(--mu);border-radius:12px}
+.noteTop{background:#fffbe6;border:1px solid #f5e6a8;border-radius:10px;padding:11px 13px;margin-bottom:12px;font-size:14px}
+.noteTop b{display:block;font-size:13px;color:#8a6d00}
+/* modal */
+.ov{position:fixed;inset:0;background:#0006;display:flex;align-items:center;justify-content:center;z-index:50;padding:10px}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:680px;max-height:94vh;overflow-y:auto;padding:20px}
+.modal h3{margin:0 0 14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px}
+.mact{display:flex;gap:7px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+.hist{background:#fafafa;border:1px dashed var(--bd);border-radius:8px;padding:8px;margin-top:5px;font-size:13px}
+.hist b{font-size:12px;color:var(--mu);display:block}
+.mini{font-size:12px;color:var(--mu)}a.add{font-size:13px;color:#0b6bcb;cursor:pointer;display:inline-block;margin-top:4px}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--dk);color:#fff;padding:9px 16px;border-radius:8px;z-index:60;font-size:14px}
+.toast.alert{background:#c62828;font-size:16px;padding:14px 22px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--bd);border-radius:20px;padding:4px 8px;margin:0 5px 5px 0;font-size:13px}
+.sw{width:18px;height:18px;border-radius:4px;border:1px solid #0002;display:inline-block}
+.tbl{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden}
+.tbl th,.tbl td{padding:8px;text-align:left;border-bottom:1px solid var(--bd);font-size:13px}
+.tbl th{background:#fafafa;color:var(--mu);font-size:12px}
+@media(max-width:900px){
+ #menuBtn{display:block}header .navb{display:none}
+ nav{position:fixed;left:0;top:56px;z-index:30;transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 20px #0002}nav.show{transform:none}
+ main{padding:12px}
+ .row{grid-template-columns:56px 62px 1fr;grid-template-areas:"tm tx pay" "rt rt rt" "nm nm nm" "ck ck ck";gap:6px}
+ .row .tm{grid-area:tm}.row .tx{grid-area:tx}.row .pw{grid-area:pay}.row .rt{grid-area:rt}.row .nm{grid-area:nm}.row .ck{grid-area:ck;justify-content:flex-start}
+ .row.note{grid-template-areas:"tm tm" "nt nt" "ck ck";grid-template-columns:56px 1fr}
+ .grid2,.grid3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="login" class="hidden">
+ <form class="card" id="lf" autocomplete="on">
+  <h1>🚕 Céges Rendelések</h1><p>Jelentkezzen be a folytatáshoz</p>
+  <div class="field"><label for="lu">Felhasználónév</label><input id="lu" name="username" autocomplete="username" required></div>
+  <div class="field"><label for="lp">Jelszó</label><input id="lp" name="password" type="password" autocomplete="current-password" required></div>
+  <label class="chk"><input type="checkbox" id="lr" checked> Emlékezzen rám</label>
+  <div class="err" id="lerr"></div><div class="ok" id="lok"></div>
+  <button class="btn" style="width:100%">Belépés</button>
+  <p style="margin:12px 0 0;text-align:center"><a href="#" id="forgot" style="font-size:13px">Elfelejtett jelszó</a></p>
+ </form>
+</div>
+<div id="main" class="hidden">
+ <header>
+  <button id="menuBtn">☰</button>
+  <div class="logo">🚕 Céges <span>Rendelések</span></div>
+  <div class="sp"></div>
+  <button class="navb" id="goSearch">🔍 Kereső</button>
+  <button class="navb" id="goNotes">📝 Infók</button>
+  <button class="navb" id="goSet">⚙️ Beállítások</button>
+  <button class="btn sec" id="logout">Kilépés</button>
+ </header>
+ <div id="app">
+  <nav id="nav"><div id="tree"></div>
+   <div class="navfoot"><button class="btn" id="addYear">+ Új év</button></div>
+  </nav>
+  <main id="content"></main>
+ </div>
+</div>
+<div id="modalRoot"></div>
+<script>
+const HU_M=['Január','Február','Március','Április','Május','Június','Július','Augusztus','Szeptember','Október','November','December'];
+const HU_D=['vasárnap','hétfő','kedd','szerda','csütörtök','péntek','szombat'];
+const PAY=['Készpénz','Bankkártya','Utalás','Amex','Menetlevél','WBS'];
+const FIELD_LABELS={time:'Időpont',from:'Kiinduló helyszín',to:'Érkezési helyszín',stops:'Megállók',passengers:'Utas neve',payment:'Fizetési mód',note:'Megjegyzés',driver:'Taxiszám (tx)',colorId:'Szín',company:'Cég',orderedBy:'Leadta',orderedOn:'Leadás dátuma'};
+let me=null,settings=null,years=[],counts={},notesC={},es=null,alarms={},openState=JSON.parse(localStorage.getItem('open')||'{}');
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0'),iso=(y,m,d)=>`${y}-${pad(m)}-${pad(d)}`;
+const hu=s=>s?s.split('-').reverse().join('.'):'';
+const todayBp=()=>new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Budapest'});
+const nowBp=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'Europe/Budapest'}));
+const dow=s=>{const[a,b,c]=s.split('-').map(Number);return new Date(Date.UTC(a,b-1,c)).getUTCDay()};
+const dim=(y,m)=>new Date(Date.UTC(y,m,0)).getUTCDate();
+function toast(t,alert){const e=document.createElement('div');e.className='toast'+(alert?' alert':'');e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),alert?12000:2500)}
+function closeModal(){$('#modalRoot').innerHTML=''}
+function modal(html){$('#modalRoot').innerHTML=`<div class="ov"><div class="modal">${html}</div></div>`;const o=$('#modalRoot .ov');o.onclick=e=>{if(e.target===o)closeModal()}}
+async function api(u,o={}){const r=await fetch(u,{...o,headers:{'Content-Type':'application/json'},body:o.body?JSON.stringify(o.body):undefined});
+ if(r.status===401&&!u.includes('/login')){showLogin();throw new Error('auth')}
+ const j=await r.json().catch(()=>({}));
+ if(!r.ok)throw new Error(j.error||('Hiba ('+r.status+')'));return j}
+function showLogin(msg){$('#main').classList.add('hidden');$('#login').classList.remove('hidden');
+ if(es){es.close();es=null}
+ if(msg==='expired')$('#lerr').textContent='Lejárt a bejelentkezés. Kérjük, lépjen be újra.';}
+
+$('#lf').onsubmit=async e=>{e.preventDefault();$('#lerr').textContent='';$('#lok').textContent='';
+ try{await api('/api/login',{method:'POST',body:{username:$('#lu').value,password:$('#lp').value,remember:$('#lr').checked}});
+  if(window.PasswordCredential){try{await navigator.credentials.store(new PasswordCredential(e.target))}catch(_){}}
+  start()}catch(err){$('#lerr').textContent=err.message}};
+$('#forgot').onclick=async e=>{e.preventDefault();const u=prompt('Felhasználónév:');if(!u)return;
+ try{const r=await api('/api/forgot',{method:'POST',body:{username:u}});$('#lok').textContent=r.message}catch(err){$('#lerr').textContent=err.message}};
+$('#logout').onclick=async()=>{try{await fetch('/api/logout')}catch(e){}showLogin()};
+$('#menuBtn').onclick=()=>$('#nav').classList.toggle('show');
+$('#goSearch').onclick=()=>{location.hash='#/search';route()};
+$('#goNotes').onclick=()=>{location.hash='#/notes';route()};
+$('#goSet').onclick=()=>{location.hash='#/settings';route()};
+
+if(location.hash.startsWith('#reset=')){const t=location.hash.slice(7);
+ const p=prompt('Új jelszó (legalább 8 karakter):');location.hash='';
+ if(p)fetch('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:t,password:p})})
+  .then(r=>r.json()).then(j=>{showLogin();$('#lok').textContent=j.ok?'A jelszó megváltozott, jelentkezzen be.':j.error})}
+
+async function start(){
+ try{me=await api('/api/me')}catch(e){return}
+ $('#login').classList.add('hidden');$('#main').classList.remove('hidden');
+ settings=await api('/api/settings');
+ await loadYears();route();
+ es=new EventSource('/api/events');
+ es.onmessage=async ev=>{const d=JSON.parse(ev.data);await loadYears();const cur=currentDay();if(d.date&&(d.date===cur))loadDay(cur,true)};
+ es.onerror=()=>{toast('Kapcsolódás megszakadt, újrapróbálkozás…')};
+ setInterval(()=>api('/api/heartbeat').catch(()=>{}),5*60*1000);
+ startAlarmLoop();
+}
+async function loadYears(){const r=await api('/api/years');years=r.years;counts=r.counts;notesC=r.notes||{};renderTree()}
+function saveOpen(){localStorage.setItem('open',JSON.stringify(openState))}
+function currentDay(){const m=location.hash.match(/^#\/(\d{4}-\d{2}-\d{2})$/);return m?m[1]:null}
+function renderTree(){
+ const cur=currentDay(),today=todayBp();
+ if(cur){const[y,m]=cur.split('-');openState['y'+ +y]=true;openState['m'+ +y+'-'+ +m]=true}
+ let h='';
+ for(const y of years){
+  h+=`<div class="yr ${openState['y'+y]?'open':''}" data-k="y${y}"><button><span class="arr">▶</span>${y}</button><div class="kids">`;
+  for(let m=1;m<=12;m++){let mc=0,dh='';
+   for(let d=1;d<=dim(y,m);d++){const s=iso(y,m,d),c=counts[s]||0,nc=notesC[s]||0;mc+=c;const w=dow(s);
+    dh+=`<a class="day ${s===cur?'act':''} ${w===0||w===6?'we':''}" href="#/${s}"><span>${hu(s)} ${HU_D[w].slice(0,3)}${nc?' 📝':''}</span>${c?`<span class="n">${c}</span>`:''}</a>`}
+   h+=`<div class="mo ${openState['m'+y+'-'+m]?'open':''}" data-k="m${y}-${m}"><button><span class="arr">▶</span>${HU_M[m-1]}${mc?` <span class="mini">(${mc})</span>`:''}</button><div class="kids days">${dh}</div></div>`}
+  h+='</div></div>'}
+ $('#tree').innerHTML=h;
+ $('#tree').querySelectorAll('.yr>button,.mo>button').forEach(b=>b.onclick=()=>{const p=b.parentElement;p.classList.toggle('open');openState[p.dataset.k]=p.classList.contains('open');saveOpen()});
+ $('#tree').querySelectorAll('a.day').forEach(a=>a.onclick=()=>$('#nav').classList.remove('show'));
+}
+window.onhashchange=()=>{renderTree();route()};
+function route(){const d=currentDay();
+ if(d)return loadDay(d);
+ const h=location.hash;
+ if(h==='#/search')return viewSearch();
+ if(h==='#/notes')return viewNotes();
+ if(h==='#/settings')return viewSettings();
+ viewWelcome()}
+
+/* ------------- napi oldal ------------- */
+let dayItems=[];
+async function loadDay(date,silent){
+ try{dayItems=await api('/api/items?date='+date)}catch(e){
+  if(e.message==='auth')return;
+  if(!silent)$('#content').innerHTML='<div class="empty">Nem sikerült betölteni ('+esc(e.message)+').<br><br><button class="btn" onclick="location.reload()">Újrapróbálás</button></div>';
+  return}
+ renderDay(date);
+ queueAlarms(dayItems);
+}
+function renderDay(date){
+ const[y,m,d]=date.split('-').map(Number);
+ const prev=new Date(Date.UTC(y,m-1,d-1)).toISOString().slice(0,10),next=new Date(Date.UTC(y,m-1,d+1)).toISOString().slice(0,10);
+ const topNotes=dayItems.filter(i=>i.kind==='note'&&!i.time);
+ const rest=dayItems.filter(i=>!(i.kind==='note'&&!i.time)).sort((a,b)=>String(a.time||'99:99').localeCompare(String(b.time||'99:99')));
+ let h=`<h2>${y}. ${HU_M[m-1].toLowerCase()} ${d}. – ${HU_D[dow(date)]}</h2>
+ <p class="sub">${dayItems.filter(i=>i.kind==='order').length} rendelés · ${dayItems.filter(i=>i.kind==='note').length} megjegyzés · ${date}</p>
+ <div class="bar"><button class="btn" id="newO">+ Új rendelés</button><button class="btn sec" id="newN">+ Megjegyzés</button>
+ <span class="sp"></span><a class="btn sec sm" href="#/${prev}">‹ Előző nap</a><a class="btn sec sm" href="#/${next}">Következő nap ›</a></div>`;
+ for(const n of topNotes)h+=noteTopHtml(n);
+ h+='<div class="rows">';
+ if(!rest.length)h+='<div class="empty">Erre a napra még nincs bejegyzés.<br><br>Kattintson az „+ Új rendelés” vagy a „+ Megjegyzés” gombra.</div>';
+ rest.forEach(i=>h+=i.kind==='order'?orderRow(i):noteRow(i));
+ h+='</div>';
+ $('#content').innerHTML=h;
+ $('#newO').onclick=()=>orderForm(date);
+ $('#newN').onclick=()=>noteForm(date);
+ $('#content').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>toggle(i=>i.id===b.dataset.id,{checked:!b.classList.contains('on')}));
+ $('#content').querySelectorAll('[data-cl]').forEach(b=>b.onclick=()=>toggle(i=>i.id===b.dataset.id,{called:!b.classList.contains('on')}));
+ $('#content').querySelectorAll('[data-bold]').forEach(b=>b.onclick=()=>toggle(i=>i.id===b.dataset.bold,{bold:!b.classList.contains('b')}));
+ $('#content').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>{const it=dayItems.find(x=>x.id===b.dataset.edit);it.kind==='note'?noteForm(it.date,it):orderForm(it.date,it)});
+ $('#content').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>remove(b.dataset.del));
+ $('#content').querySelectorAll('[data-bell]').forEach(b=>b.onclick=()=>{const it=dayItems.find(x=>x.id===b.dataset.bell);bellMenu(it)});
+ $('#content').querySelectorAll('[data-exp]').forEach(b=>b.onclick=()=>{const r=document.getElementById('x'+b.dataset.exp);r.classList.toggle('hidden')});
+}
+async function toggle(find,patch){
+ const it=dayItems.find(find);if(!it)return;
+ Object.assign(it,patch);
+ await api('/api/items/'+it.id,{method:'PUT',body:it});
+ renderDay(it.date);loadYears();
+}
+async function remove(id){
+ const it=dayItems.find(x=>x.id===id);if(!it)return;
+ if(!confirm('Biztosan törli ezt: '+(it.time||'')+' '+(it.fields.from.value||it.fields.note.value).slice(0,40)+'?'))return;
+ await api('/api/items/'+id,{method:'DELETE'});toast('Törölve');loadDay(it.date,true);loadYears();
+}
+function payClass(v){return 'pay '+(PAY.includes(v)?v:'')}
+function fMod(f2){return f2&&f2.modified?' m':''}
+function orderRow(o){
+ const c=settings.colors.find(x=>x.name===o.fields.colorId.name)||o.fields.colorId;
+ const bg=c&&c.hex&&c.hex!=='#eeeeee'?`background:${c.hex};`:'';
+ const stops=(o.fields.stops.value||'').split(';').map(s=>s.trim()).filter(Boolean);
+ const pax=(o.fields.passengers.value||'').split(';').map(s=>s.trim()).filter(Boolean);
+ const hh=o.fields.time.value?o.fields.time.value.slice(0,2):'';
+ const ann=o.fields.orderedOn.value?`<span class="ann">${hu(o.fields.orderedOn.value)}</span>`:'';
+ return `<div class="row" style="${bg}">
+  <div class="tm f${fMod(o.fields.time)}">${esc(o.fields.time.value)}${ann}</div>
+  <div class="tx ${o.bold?'b':''}" data-bold="${o.id}" title="Dupla kattintás: kiküldve"><span class="mini">tx</span><b class="f${fMod(o.fields.driver)}">${esc(o.fields.driver.value)||'–'}</b></div>
+  <div class="pw"><span class="${payClass(o.fields.payment.value)} f${fMod(o.fields.payment)}">${esc(o.fields.payment.value)||'?'}</span></div>
+  <div class="rt"><span class="f${fMod(o.fields.from)}">${esc(o.fields.from.value)}</span> <span class="tg">→</span> <span class="f${fMod(o.fields.to)}">${esc(o.fields.to.value)}</span>
+   ${stops.map(s=>`<span class="st">→ <span class="f${fMod(o.fields.stops)}">${esc(s)}</span></span>`).join('')}</div>
+  <div class="nm"><b class="f${fMod(o.fields.orderedBy)}">${esc(o.fields.orderedBy.value)||'–'}</b>
+   <span>${esc(o.fields.company.value)}${o.fields.company.value&&pax.length?' · ':''}${pax.map(p=>`<span class="f${fMod(o.fields.passengers)}">${esc(p)}</span>`).join(', ')}</span>
+   ${o.fields.note.value?`<span>📝 ${esc(o.fields.note.value)}</span>`:''}</div>
+  <div class="ck">
+   <label><input type="checkbox" data-ck="${o.id}" ${o.checked?'checked':''} class="${o.checked?'on':''}"> Ellenőrizve</label>
+   <label><input type="checkbox" data-cl="${o.id}" ${o.called?'checked':''} class="${o.called?'on':''}"> Hívtam</label>
+   <button class="bell ${o.notify&&o.notify.on?'on':'off'}" data-bell="${o.id}" title="Értesítés">${o.notify&&o.notify.on?'🔔':'🔕'}</button>
+   <button class="btn sec sm" data-edit="${o.id}">✏️</button><button class="btn sec sm" data-del="${o.id}">🗑️</button>
+  </div>
+ </div>
+ ${(o.history&&o.history.length)?`<div><a class="mini" data-exp="${o.id}" style="cursor:pointer">▸ módosítási előzmények (${o.history.length})</a><div class="hidden hist" id="x${o.id}">${o.history.map(e=>`<div><b>${esc(e.when)} – ${esc(e.who)}</b>${esc(e.text)}</div>`).join('')}</div></div>`:''}`;
+}
+function noteRow(n){
+ return `<div class="row note">
+  <div class="tm">${esc(n.time.value||'—')}${n.fields.note.modified?'<span class="ann">mod.</span>':''}</div>
+  <div class="rt f${fMod(n.fields.note)}">📝 ${esc(n.fields.note.value)}</div>
+  <div class="ck"><button class="bell ${n.notify&&n.notify.on?'on':'off'}" data-bell="${n.id}">${n.notify&&n.notify.on?'🔔':'🔕'}</button>
+   <button class="btn sec sm" data-edit="${n.id}">✏️</button><button class="btn sec sm" data-del="${n.id}">🗑️</button></div></div>`;
+}
+function noteTopHtml(n){
+ return `<div class="noteTop"><b>📌 Napi megjegyzés ${n.notify&&n.notify.on?'· 🔔':''}</b>${esc(n.fields.note.value)}
+ <div class="mact" style="margin-top:6px"><button class="btn sec sm" data-edit="${n.id}">✏️</button><button class="btn sec sm" data-del="${n.id}">🗑️</button></div></div>`;
+}
+
+/* ------------- rendelés űrlap ------------- */
+function listBlock(id,label,val,ph,mod,hist){
+ return `<div class="field"><label>${label} <span class="mini">(pontosvesszővel elválasztva)</span></label>
+ <input id="${id}" value="${esc(val)}" placeholder="${ph}">
+ <label class="chk" style="margin:5px 0 0"><input type="checkbox" id="${id}m" ${mod?'checked':''}> mod.: módosítva volt</label>
+ <div id="${id}h" class="${mod?'':'hidden'}"><textarea id="${id}ht" class="hist" rows="2" placeholder="Előzmény: mikor módosult, ki kérte, mi volt előtte…">${esc(hist)}</textarea></div></div>`;
+}
+function fieldBlock(id,label,val,type,mod,hist,extra){
+ return `<div class="field"><label>${label}</label>${type==='textarea'
+  ?`<textarea id="${id}" rows="2">${esc(val)}</textarea>`
+  :`<input id="${id}" type="${type||'text'}" value="${esc(val)}" ${extra||''} list="${id}dl"><datalist id="${id}dl"></datalist>`}
+ <label class="chk" style="margin:5px 0 0"><input type="checkbox" id="${id}m" ${mod?'checked':''}> mod.: módosítva volt</label>
+ <div id="${id}h" class="${mod?'':'hidden'}"><textarea id="${id}ht" class="hist" rows="2" placeholder="Előzmény…">${esc(hist)}</textarea></div></div>`;
+}
+function orderForm(date,o){
+ const isNew=!o;
+ o=o||{date,kind:'order',fields:{},history:[],notify:{on:false}};
+ const F=k=>(o.fields[k]||{value:'',modified:false,history:''});
+ const f=k=>F(k).value||'',mo=k=>F(k).modified,hi=k=>F(k).history||'';
+ let hh='',mm='';
+ let T=f('time').split(':');
+ if(!/^\d{2}$/.test(T[0]||'')||!/^\d{2}$/.test(T[1]||'')){
+  const n=new Date(nowBp());
+  n.setMinutes(n.getMinutes()+15-(n.getMinutes()%15),0,0);
+  T=[pad(n.getHours()),pad(n.getMinutes())];
+ }
+ for(let i=0;i<24;i++)hh+=`<option ${pad(i)===T[0]?'selected':''}>${pad(i)}</option>`;
+ for(let i=0;i<60;i++)mm+=`<option ${pad(i)===T[1]?'selected':''}>${pad(i)}</option>`;
+ modal(`<h3>${isNew?'Új rendelés':'Rendelés szerkesztése'} – ${hu(date)}</h3>
+ <form id="of">
+ <div class="grid2">
+  <div class="field"><label>Időpont *</label><div class="grid2"><select id="th">${hh}</select><select id="tm">${mm}</select></div>
+   <label class="chk" style="margin:5px 0 0"><input type="checkbox" id="thm" ${mo('time')?'checked':''}> mod.</label>
+   <div id="thh" class="${mo('time')?'':'hidden'}"><textarea id="thht" class="hist" rows="2" placeholder="Előzmény…">${esc(hi('time'))}</textarea></div></div>
+  <div class="field"><label>Utazás napja *</label><input type="date" id="dt" value="${esc(o.date||date)}" required></div>
+ </div>
+ <div class="grid2">${fieldBlock('ff','Kiinduló helyszín *',f('from'),'text',mo('from'),hi('from'))}
+ ${fieldBlock('ft','Érkezési helyszín *',f('to'),'text',mo('to'),hi('to'))}</div>
+ ${listBlock('fs','Megállók (érkezés előtt)',f('stops'),'pl. Váci út 12; MOL kút','','')}
+ ${listBlock('fp','Utas neve',f('passengers'),'pl. Kovács Anna; Nagy Péter',mo('passengers'),hi('passengers'))}
+ <div class="grid2">
+  ${fieldBlock('fon','Rendelés leadásának dátuma',f('orderedOn')||todayBp(),'date',mo('orderedOn'),hi('orderedOn'))}
+  ${fieldBlock('fby','Leadta',f('orderedBy'))}
+ </div>
+ <div class="grid2">
+  ${fieldBlock('fco','Cég',f('company'))}
+  <div class="field"><label>Fizetés módja</label><select id="fpay"><option value="">–</option>${PAY.map(p=>`<option ${p===f('payment')?'selected':''}>${p}</option>`).join('')}</select>
+   <label class="chk" style="margin:5px 0 0"><input type="checkbox" id="fpaym" ${mo('payment')?'checked':''}> mod.</label>
+   <div id="fpayh" class="${mo('payment')?'':'hidden'}"><textarea id="fpayht" class="hist" rows="2" placeholder="Előzmény…">${esc(hi('payment'))}</textarea></div></div>
+ </div>
+ <div class="grid3">
+  ${fieldBlock('fdr','Taxiszám (tx)',f('driver'))}
+  <div class="field"><label>Szín / jelölés</label><select id="fcol">${[''].concat(settings.colors.map(c=>c.label||c.name)).map(c=>`<option ${c===(F('colorId').value||'')?'selected':''}>${esc(c)}</option>`).join('')}</select></div>
+  <div class="field"><label>Értesítés</label><label class="chk" style="margin:0 0 4px"><input type="checkbox" id="nb" ${o.notify&&o.notify.on?'checked':''}> jelezzen előtte</label>
+   <div class="grid2"><select id="nbh">${['',...Array.from({length:24},(_,i)=>pad(i))].map(x=>`<option ${o.notify&&pad(0)+''===''&&false}${o.notify&&o.notify.hour===x?'selected':''}>${x||'óra'}</option>`).join('')}</select>
+   <select id="nbm">${['',...Array.from({length:60},(_,i)=>pad(i))].map(x=>`<option ${o.notify&&o.notify.minute===x?'selected':''}>${x||'perc'}</option>`).join('')}</select></div></div>
+ </div>
+ ${fieldBlock('fno','Megjegyzés',f('note'),'textarea')}
+ <div id="sok" class="${isNew?'':'hidden'}">
+  <label class="chk"><input type="checkbox" id="dup"> Sokszorosítás (ugyanaz az adat)</label>
+  <div class="grid2"><div class="field"><label>Hány példány (2–10)</label><input type="number" id="dupN" min="2" max="10" value="3"></div>
+  <div class="field"><label>Mely napokra</label><div id="dupDates"></div><a class="add" id="addD">+ nap hozzáadása</a></div></div>
+ </div>
+ <div class="field"><label>Módosítási előzmény (csak szerkesztésnél, a rendelésre kattintva látszik)</label>
+  <div id="hlist">${(o.history||[]).map(e=>`<div class="hist"><b>${esc(e.when)} – ${esc(e.who)}</b>${esc(e.text)}</div>`).join('')||'<span class="mini">Nincs előzmény.</span>'}</div>
+  <div class="grid3"><input id="hwhen" type="date" value="${todayBp()}"><input id="hwho" placeholder="Ki kérte?"><input id="htext" placeholder="Mi változott?"></div>
+  <a class="add" id="addH">+ előzmény hozzáadása</a>
+ </div>
+ <div class="err" id="ferr"></div>
+ <div class="mact"><button type="button" class="btn sec" id="fc">Mégse</button><button class="btn" id="fsave">Mentés</button></div></form>`);
+ const hist=[...(o.history||[])];
+ $('#fc').onclick=closeModal;
+ ['ff','ft','fon','fby','fco','fdr','fp','fs','fno','th','fpay'].forEach(k=>{$('#'+k+'m').onchange=e=>$('#'+k+'h').classList.toggle('hidden',!e.target.checked)});
+ $('#addD').onclick=()=>{const d=document.createElement('input');d.type='date';d.value=date;$('#dupDates').appendChild(d)};
+ $('#addH').onclick=()=>{if(!$('#htext').value.trim())return;hist.push({when:$('#hwhen').value,who:$('#hwho').value||me.name,text:$('#htext').value});
+  $('#hlist').innerHTML=hist.map(e=>`<div class="hist"><b>${esc(e.when)} – ${esc(e.who)}</b>${esc(e.text)}</div>`).join('');
+  $('#htext').value=''};
+ fillDatalists();
+ $('#of').onsubmit=async e=>{e.preventDefault();$('#ferr').textContent='';
+  const miss=[];
+  if(!$('#th').value)miss.push('időpont (óra)');
+  if(!$('#tm').value)miss.push('időpont (perc)');
+  if(!$('#ff').value.trim())miss.push('kiinduló helyszín');
+  if(!$('#ft').value.trim())miss.push('érkezési helyszín');
+  if(!$('#dt').value)miss.push('utazás napja');
+  if(miss.length){$('#ferr').textContent='Hiányzik: '+miss.join(', ')+'.';return}
+  const g=(k,mk,hk)=>({value:$('#'+k).value,modified:$('#'+mk).checked,history:$('#'+hk+'t').value});
+  const fields={
+   time:{value:$('#th').value+':'+$('#tm').value,modified:$('#thm').checked,history:$('#thht').value},
+   from:g('ff','ffm','ffh'),to:g('ft','ftm','fth'),
+   stops:{value:$('#fs').value,modified:false,history:''},
+   passengers:g('fp','fpm','fph'),
+   payment:{value:$('#fpay').value,modified:$('#fpaym').checked,history:$('#fpayht').value},
+   note:g('fno','fnom','fnoh'),
+   driver:g('fdr','fdrm','fdrh'),colorId:{value:$('#fcol').value,modified:false,history:''},
+   company:{value:$('#fco').value,modified:false,history:''},
+   orderedBy:{value:$('#fby').value,modified:false,history:''},
+   orderedOn:{value:$('#fon').value,modified:$('#fonm').checked,history:$('#fonht').value}
+  };
+
+  const body={kind:'order',date:$('#dt').value,time:fields.time.value,fields,checked:!!o.checked,called:!!o.called,bold:!!o.bold,
+   notify:{on:$('#nb').checked,hour:$('#nbh').value,minute:$('#nbm').value},history:hist};
+  const sv=$('#fsave');
+  sv.disabled=true;sv.textContent='Mentés…';
+  try{
+   if(isNew){
+    let dates=[$('#dt').value];
+    if($('#dup').checked){const n=Math.max(2,Math.min(10,+$('#dupN').value||2));
+     dates=[...$('#dupDates').querySelectorAll('input')].map(i=>i.value).filter(Boolean);
+     if(dates.length!==n){$('#ferr').textContent='Adjon meg pontosan '+n+' napot.';return}}
+    for(const d of dates){await api('/api/items',{method:'POST',body:{...body,date:d}})}
+   } else await api('/api/items/'+o.id,{method:'PUT',body:body});
+   closeModal();toast('Mentve');await loadYears();
+   if($('#dt').value!==date)location.hash='#/'+$('#dt').value;else loadDay(date,true);
+  }catch(err){$('#ferr').textContent=err.message;sv.disabled=false;sv.textContent='Mentés'}};
+}
+async function fillDatalists(){
+ const list=await api('/api/search?q=').catch(()=>[]);
+ const all=[...(dayItems||[])];
+ const acc={ff:[],ft:[],fby:[],fco:[]};
+ for(const it of [...list,...all]){
+  if(it.kind!=='order')continue;
+  acc.ff.push(it.fields.from.value);acc.ft.push(it.fields.to.value);acc.fby.push(it.fields.orderedBy.value);acc.fco.push(it.fields.company.value);
+ }
+ for(const k in acc){const dl=$('#'+k+'dl');if(dl)dl.innerHTML=[...new Set(acc[k].filter(Boolean))].slice(0,200).map(v=>`<option>${esc(v)}</option>`).join('')}
+}
+function noteForm(date,n){
+ const isNew=!n;n=n||{date,kind:'note',fields:{},notify:{on:false}};
+ const F=(n.fields.note)||{value:'',modified:false,history:''};
+ modal(`<h3>${isNew?'Új megjegyzés':'Megjegyzés szerkesztése'} – ${hu(date)}</h3><form id="nf">
+ <div class="grid2">
+  <div class="field"><label>Időpont (óra:perc) – üresen a lap tetejére kerül</label><input id="nt" value="${esc(n.fields.time?n.fields.time.value:'')}" placeholder="pl. 10:00"></div>
+  <div class="field"><label>Nap</label><input type="date" id="nd" value="${esc(n.date||date)}"></div></div>
+ <div class="field"><label>Megjegyzés *</label><textarea id="nn" rows="3">${esc(F.value)}</textarea>
+  <label class="chk" style="margin:5px 0 0"><input type="checkbox" id="nnm" ${F.modified?'checked':''}> mod.: módosítva volt</label>
+  <div id="nnh" class="${F.modified?'':'hidden'}"><textarea id="nnht" class="hist" rows="2" placeholder="Előzmény…">${esc(F.history||'')}</textarea></div></div>
+ <div class="field"><label>Értesítés</label><label class="chk" style="margin:0 0 4px"><input type="checkbox" id="nb" ${n.notify&&n.notify.on?'checked':''}> jelezzen előtte</label>
+  <div class="grid2"><select id="nbh">${['',...Array.from({length:24},(_,i)=>pad(i))].map(x=>`<option ${n.notify&&n.notify.hour===x?'selected':''}>${x||'óra'}</option>`).join('')}</select>
+  <select id="nbm">${['',...Array.from({length:60},(_,i)=>pad(i))].map(x=>`<option ${n.notify&&n.notify.minute===x?'selected':''}>${x||'perc'}</option>`).join('')}</select></div></div>
+ <div class="err" id="nerr"></div>
+ <div class="mact"><button type="button" class="btn sec" id="nc">Mégse</button><button class="btn" id="nsave">Mentés</button></div></form>`);
+ $('#nc').onclick=closeModal;
+ $('#nnm').onchange=e=>$('#nnh').classList.toggle('hidden',!e.target.checked);
+ $('#nf').onsubmit=async e=>{e.preventDefault();$('#nerr').textContent='';
+  if(!$('#nn').value.trim()){$('#nerr').textContent='A megjegyzés nem lehet üres.';return}
+  if($('#nt').value&&!/^([01]\d|2[0-3]):[0-5]\d$/.test($('#nt').value)){$('#nerr').textContent='Az időpont formátuma: óra:perc (pl. 10:30).';return}
+  const nsv=$('#nsave');nsv.disabled=true;nsv.textContent='Mentés…';
+  const body={kind:'note',date:$('#nd').value,time:{value:$('#nt').value},fields:{note:{value:$('#nn').value,modified:$('#nnm').checked,history:$('#nnht').value},time:{value:$('#nt').value,modified:false,history:''}},
+   notify:{on:$('#nb').checked,hour:$('#nbh').value,minute:$('#nbm').value}};
+  try{if(isNew)await api('/api/items',{method:'POST',body});else await api('/api/items/'+n.id,{method:'PUT',body});
+   closeModal();toast('Mentve');loadYears();loadDay(date,true)}catch(err){$('#nerr').textContent=err.message;nsv.disabled=false;nsv.textContent='Mentés'}};
+}
+
+/* ------------- értesítés ------------- */
+function bellMenu(it){
+ const on=it.notify&&it.notify.on;
+ modal(`<h3>🔔 Értesítés</h3><p class="sub">${hu(it.date)} ${esc(it.time||'')} ${esc((it.fields.from&&it.fields.from.value)||(it.fields.note&&it.fields.note.value)||'')}</p>
+ <form id="bf"><label class="chk"><input type="checkbox" id="bon" ${on?'checked':''}> Jelezzen hangjelzéssel</label>
+ <div class="grid2"><div class="field"><label>Ennyivel előtte – óra</label><select id="boh">${Array.from({length:13},(_,i)=>pad(i)).map(x=>`<option ${it.notify&&it.notify.hour===x?'selected':''}>${x}</option>`).join('')}</select></div>
+ <div class="field"><label>perc</label><select id="bom">${['00','05','10','15','20','30','40','45','50'].map(x=>`<option ${it.notify&&it.notify.minute===x?'selected':''}>${x}</option>`).join('')}
+ <option ${it.notify&&!/^(00|05|10|15|20|30|40|45|50)$/.test(it.notify.minute||'')?'selected':''}>${esc(it.notify&&it.notify.minute||'00')}</option></select></div></div>
+ <div class="field"><label>Rövid szöveg a jelzéshez</label><input id="bnote" value="${esc(it.notify&&it.notify.note||'')}"></div>
+ <div class="mact"><button type="button" class="btn sec" id="bc">Mégse</button><button class="btn">Mentés</button></div></form>`);
+ $('#bc').onclick=closeModal;
+ $('#bf').onsubmit=async e=>{e.preventDefault();
+  const body={...it,notify:{on:$('#bon').checked,hour:$('#boh').value,minute:$('#bom').value,note:$('#bnote').value}};
+  await api('/api/items/'+it.id,{method:'PUT',body});
+  closeModal();toast('Értesítés mentve');loadDay(it.date,true)};
+}
+function queueAlarms(items){
+ const t=nowBp();
+ for(const it of items){
+  if(!it.notify||!it.notify.on)continue;
+  if(!it.time)continue;
+  const [h,m]=it.time.split(':').map(Number);
+  const when=new Date(t.getFullYear(),t.getMonth(),t.getDate(),h,m);
+  const lead=(+it.notify.hour||0)*60+(+it.notify.minute||0);
+  when.setMinutes(when.getMinutes()-lead);
+  const key=it.id+'|'+it.date+'|'+it.time+'|'+lead;
+  if(alarms[key])continue;
+  if(when.getTime()<=t.getTime())continue;
+  alarms[key]=true;
+  const ms=when.getTime()-t.getTime();
+  setTimeout(()=>fire(it),ms);
+ }
+}
+function fire(it){
+ const snd=settings.sound||1;
+ const dur=settings.keepBeeping?15000:(settings.beepSeconds||5)*1000;
+ try{beep(snd,dur)}catch(e){}
+ toast('🔔 '+(it.notify.note||('Rendelés: '+hu(it.date)+' '+it.time)),true);
+ if(Notification&&Notification.permission==='granted'){try{new Notification('Taxi rendelés',{body:(it.time||'')+' '+((it.fields.from&&it.fields.from.value)||'')})}catch(e){}}
+}
+function beep(which,ms){
+ if(!beep.ctx)beep.ctx=new (window.AudioContext||window.webkitAudioContext)();
+ const c=beep.ctx,o=c.createOscillator(),g=c.createGain();
+ const f={1:[880,0],2:[660,0.35],3:[520,0.6],4:[990,0.15]}[which]||[880,0];
+ o.type=which===3?'triangle':'sine';o.frequency.value=f[0];
+ o.connect(g);g.connect(c.destination);g.gain.value=0.25;
+ o.start();o.stop(c.currentTime+ms/1000);
+ if(!settings.keepBeeping){ // rövid ismétlődő csipogás
+  let n=0;const iv=setInterval(()=>{n++;if(n*400>ms){clearInterval(iv);return}
+   const o2=c.createOscillator(),g2=c.createGain();o2.frequency.value=f[0];o2.connect(g2);g2.connect(c.destination);g2.gain.value=0.2;o2.start();o2.stop(c.currentTime+0.15)},400);
+ }
+}
+function startAlarmLoop(){setInterval(()=>{const d=currentDay();if(d&&d===todayBp())queueAlarms(dayItems)},60000);
+ if(Notification&&Notification.permission==='default')setTimeout(()=>Notification.requestPermission(),3000)}
+
+/* ------------- kereső ------------- */
+async function viewSearch(){
+ $('#content').innerHTML=`<h2>🔍 Kereső</h2><p class="sub">Keresés cégre, leadóra, címre, utasra, taxiszámra – az egész évben, időrendben.</p>
+ <div class="bar"><input id="q" placeholder="Keresett szó…" style="max-width:280px"><input type="date" id="qf" title="Ettől"><input type="date" id="qt" title="Eddig"><button class="btn" id="qb">Keresés</button></div><div id="qres"></div>`;
+ const run=async()=>{
+  const p=new URLSearchParams({q:$('#q').value,from:$('#qf').value,to:$('#qt').value});
+  const out=await api('/api/search?'+p);
+  $('#qres').innerHTML=out.length?`<p class="sub">${out.length} találat</p><table class="tbl"><tr><th>Nap</th><th>Idő</th><th>tx</th><th>Útvonal</th><th>Leadta / Cég</th><th>Utas</th><th>Fizetés</th></tr>
+   ${out.map(o=>o.kind==='note'?`<tr><td>${hu(o.date)}</td><td>${esc(o.time||'—')}</td><td></td><td colspan="4">📝 ${esc(o.fields.note.value)}</td></tr>`
+   :`<tr><td><a href="#/${o.date}">${hu(o.date)}</a></td><td>${esc(o.time)}</td><td>${esc(o.fields.driver.value)}</td><td>${esc(o.fields.from.value)} → ${esc(o.fields.to.value)}${o.fields.stops.value?' → '+esc(o.fields.stops.value):''}</td>
+   <td>${esc(o.fields.orderedBy.value)}${o.fields.company.value?' · '+esc(o.fields.company.value):''}</td><td>${esc(o.fields.passengers.value)}</td><td>${esc(o.fields.payment.value)}</td></tr>`).join('')}</table>`
+   :'<div class="empty">Nincs találat.</div>';
+ };
+ $('#qb').onclick=run;$('#q').onkeydown=e=>{if(e.key==='Enter')run()};
+ run();
+}
+/* ------------- infók ------------- */
+async function viewNotes(){
+ $('#content').innerHTML=`<h2>📝 Infók</h2><p class="sub">Dátumhoz kötött megjegyzések, saját keresővel.</p>
+ <div class="bar"><input id="nq" placeholder="Keresés a megjegyzésekben…" style="max-width:280px"><button class="btn" id="nb2">Keresés</button><button class="btn sec" id="nnew">+ Új megjegyzés (mai napra)</button></div><div id="nres"></div>`;
+ const run=async()=>{const out=await api('/api/notes?q='+encodeURIComponent($('#nq').value));
+  $('#nres').innerHTML=out.length?`<table class="tbl"><tr><th>Nap</th><th>Idő</th><th>Megjegyzés</th><th></th></tr>
+   ${out.map(n=>`<tr><td><a href="#/${n.date}">${hu(n.date)}</a></td><td>${esc(n.time||'—')}</td><td${n.fields.note.modified?' class="m"':''}>${esc(n.fields.note.value)}</td>
+   <td><button class="btn sec sm" data-e="${n.id}">✏️</button></td></tr>`).join('')}</table>`:'<div class="empty">Nincs megjegyzés.</div>';
+  $('#nres').querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{const n=out.find(x=>x.id===b.dataset.e);noteForm(n.date,n)});
+ };
+ $('#nb2').onclick=run;$('#nq').onkeydown=e=>{if(e.key==='Enter')run()};
+ $('#nnew').onclick=()=>noteForm(todayBp());
+ run();
+}
+/* ------------- beállítások ------------- */
+async function viewSettings(){
+ settings=await api('/api/settings');
+ $('#content').innerHTML=`<h2>⚙️ Beállítások</h2><p class="sub">Színek jelölése, értesítési hang.</p>
+ <h3>Színek</h3><div id="cols">${settings.colors.map((c,i)=>`<div class="grid3" style="margin-bottom:6px">
+  <div><span class="sw" style="background:${c.hex}"></span> <input value="${esc(c.name)}" data-i="${i}" data-k="name"></div>
+  <div><input value="${esc(c.label)}" data-i="${i}" data-k="label" placeholder="Mit jelöl?"></div>
+  <div><input value="${esc(c.hex)}" data-i="${i}" data-k="hex"></div></div>`).join('')}</div>
+ <div class="mact" style="justify-content:flex-start"><button class="btn sec sm" id="addC">+ Új szín</button><button class="btn sm" id="saveC">Színek mentése</button></div>
+ <h3 style="margin-top:20px">Értesítési hang</h3>
+ <div>${[1,2,3,4].map(s=>`<label class="chk"><input type="radio" name="snd" value="${s}" ${settings.sound===s?'checked':''}> ${s}. hang <button type="button" class="btn sec sm" data-play="${s}">▶ meghallgatás</button></label>`).join('')}</div>
+ <h3 style="margin-top:20px">Jelzés hossza</h3>
+ <label class="chk"><input type="radio" name="dur" value="short" ${!settings.keepBeeping?'checked':''}> Rövid jelzés <input type="number" id="secs" value="${settings.beepSeconds||5}" min="1" max="300" style="width:80px"> másodpercig</label>
+ <label class="chk"><input type="radio" name="dur" value="keep" ${settings.keepBeeping?'checked':''}> Amíg le nem állítom</label>
+ <h3 style="margin-top:20px">Fiók</h3>
+ <p class="sub">${esc(me.name)} (${esc(me.username)})</p>
+ <div class="mact" style="justify-content:flex-start"><button class="btn sec sm" id="pwBtn">Jelszó módosítása</button></div>`;
+ $('#addC').onclick=()=>{settings.colors.push({name:'Új szín',hex:'#ffffff',label:''});viewSettings()};
+ document.querySelectorAll('[data-play]').forEach(b=>b.onclick=()=>beep(+b.dataset.play,1500));
+ $('#saveC').onclick=async()=>{
+  document.querySelectorAll('[data-i]').forEach(inp=>settings.colors[+inp.dataset.i][inp.dataset.k]=inp.value);
+  settings=await api('/api/settings',{method:'PUT',body:{colors:settings.colors}});toast('Színek mentve');viewSettings()};
+ document.querySelectorAll('input[name=snd]').forEach(r=>r.onchange=async()=>{settings=await api('/api/settings',{method:'PUT',body:{sound:+r.value}})});
+ document.querySelectorAll('input[name=dur]').forEach(r=>r.onchange=async()=>{settings=await api('/api/settings',{method:'PUT',body:{keepBeeping:r.value==='keep'}})});
+ $('#secs').onchange=async e=>{settings=await api('/api/settings',{method:'PUT',body:{beepSeconds:+e.target.value}})};
+ $('#pwBtn').onclick=async()=>{const old=prompt('Jelenlegi jelszó:');if(!old)return;const nw=prompt('Új jelszó (min. 8 karakter):');if(!nw)return;
+  try{await api('/api/password',{method:'POST',body:{old,new:nw}});toast('Jelszó módosítva')}catch(e){toast(e.message,true)}};
+}
+/* ------------- egyéb ------------- */
+$('#addYear').onclick=()=>{const sug=Math.max(2027,...years);
+ modal(`<h3>Új év hozzáadása</h3><p class="sub">A hónapok és napok automatikusan létrejönnek.</p><form id="yf">
+ <div class="field"><label>Év</label><input type="number" id="yv" min="2000" max="2100" value="${sug}"></div>
+ <div class="err" id="yerr"></div><div class="mact"><button type="button" class="btn sec" id="yc">Mégse</button><button class="btn">Hozzáadás</button></div></form>`);
+ $('#yc').onclick=closeModal;
+ $('#yf').onsubmit=async e=>{e.preventDefault();try{await api('/api/years',{method:'POST',body:{year:+$('#yv').value}});openState['y'+ +$('#yv').value]=true;saveOpen();closeModal();await loadYears();toast('Hozzáadva')}catch(err){$('#yerr').textContent=err.message}};
+};
+function viewWelcome(){
+ const t=todayBp(),h=nowBp();
+ $('#content').innerHTML=`<div class="card" style="max-width:none"><h2>Üdvözöljük, ${esc(me.name)}!</h2>
+ <p class="sub">Mai dátum (Budapest): ${hu(t)} ${HU_D[dow(t)]} · ${pad(h.getHours())}:${pad(h.getMinutes())}</p>
+ <p>Válasszon napot a bal oldali menüből (év → hónap → nap), vagy ugorjon ide:</p>
+ <div class="bar"><input type="date" id="jump" style="max-width:200px" value="${years.includes(+t.slice(0,4))?t:years[0]+'-01-01'}"><button class="btn" id="jb">Megnyitás</button></div></div>`;
+ $('#jb').onclick=()=>location.hash='#/'+$('#jump').value;
+}
+fetch('/api/me').then(r=>{if(r.status===401)showLogin()}).catch(()=>showLogin());
+</script>
+</body>
+</html>
