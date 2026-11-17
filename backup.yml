@@ -1,0 +1,43 @@
+name: Titkosított napi mentés
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # minden nap 03:00 UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: MongoDB tools telepítése
+        run: |
+          curl -fsSL https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.9.4.tgz -o t.tgz
+          tar xzf t.tgz
+          sudo cp mongodb-database-tools-*/bin/* /usr/local/bin/
+      - name: Exportálás
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        run: |
+          mkdir -p out
+          mongoexport --uri "$MONGODB_URI" --collection kartoteka --jsonArray --out out/kartoteka.json
+          mongoexport --uri "$MONGODB_URI" --collection users --jsonArray --out out/users.json
+          mongoexport --uri "$MONGODB_URI" --collection settings --jsonArray --out out/settings.json
+          tar czf mentes.tar.gz -C out .
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in mentes.tar.gz -out mentes.enc -pass pass:"${{ secrets.BACKUP_PASSPHRASE }}"
+          echo "Méret: $(du -h mentes.enc | cut -f1)"
+      - name: Feltöltés a backups ágba
+        run: |
+          git config user.name "mentes-bot"
+          git config user.email "bot@example.com"
+          git checkout --orphan backups-tmp
+          git rm -rf --cached . >/dev/null
+          mkdir -p backups
+          cp mentes.enc "backups/mentes-$(date +%Y-%m-%d).enc"
+          git add -f backups
+          git commit -m "Mentés $(date +%F)"
+          git push -f origin HEAD:backups
+      - name: Régi mentések törlése (90 napnál régebbiek)
+        run: echo "A régi mentéseket a GitHub Actions felületen vagy kézzel lehet törölni."
