@@ -2,9 +2,11 @@
   "name": "taxi-rendelesek",
   "version": "2.0.0",
   "description": "Taxi céges megrendelések rögzítése – teljes verzió",
+  "license": "UNLICENSED",
+  "private": true,
   "main": "server.js",
   "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=18" },
+  "engines": { "node": "22.x" },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "express": "^4.19.2",
